@@ -3,10 +3,16 @@ import { enterprises, whatIfScenarios, districtSummary, translations, sectors, d
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
-import { Mic, Volume2, ArrowLeft, Globe, Sprout, Users, BarChart3 } from "lucide-react";
+import { Mic, Volume2, ArrowLeft, Globe, Users, BarChart3 } from "lucide-react";
+import logoIcon from "./assets/finsaarthi-icon.png";
+import logoFull from "./assets/finsaarthi-logo-full.png";
 
 const FONT = "font-['Noto_Sans',sans-serif]";
 const L = (field, lang) => (field && (field[lang] || field.en)) ?? "";
+
+// Brand palette sampled from the FinSaarthi logo
+const NAVY = "#16234F";
+const GREEN = "#4F8942";
 
 function speak(text, lang) {
   const utterance = new SpeechSynthesisUtterance(text);
@@ -83,7 +89,7 @@ function LangToggle({ lang, setLang }) {
 function Landing({ onSelect, lang, setLang }) {
   const t = translations[lang];
   const tabs = [
-    { key: "enterprise", label: t.tabEnterprise, desc: t.tabEnterpriseDesc, icon: Sprout },
+    { key: "enterprise", label: t.tabEnterprise, desc: t.tabEnterpriseDesc, icon: null },
     { key: "officer", label: t.tabOfficer, desc: t.tabOfficerDesc, icon: Users },
     { key: "nabard", label: t.tabNabard, desc: t.tabNabardDesc, icon: BarChart3 },
   ];
@@ -93,19 +99,16 @@ function Landing({ onSelect, lang, setLang }) {
         <div className="flex justify-end mb-3">
           <LangToggle lang={lang} setLang={setLang} />
         </div>
-        <div className="bg-[#145A7A] rounded-t-2xl px-8 py-10 text-center">
-          <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Sprout className="text-white" size={30} />
-          </div>
-          <h1 className={`${FONT} text-4xl font-bold text-white mb-2`}>FinSaarthi</h1>
-          <p className={`${FONT} text-[#CFE3EC] text-base`}>{t.landingTagline}</p>
+        <div className="bg-white rounded-t-2xl border border-b-0 border-[#E2E6EA] px-8 py-10 text-center">
+          <img src={logoFull} alt="FinSaarthi" className="h-14 mx-auto mb-4" />
+          <p className={`${FONT} text-[#5B6B7A] text-base`}>{t.landingTagline}</p>
         </div>
-        <div className="bg-white rounded-b-2xl border border-t-0 border-[#E2E6EA] p-3">
+        <div className="bg-white rounded-b-2xl border border-t border-[#E2E6EA] p-3">
           {tabs.map((tab) => (
             <button key={tab.key} onClick={() => onSelect(tab.key)}
               className="w-full text-left px-4 py-4 flex items-center gap-4 rounded-xl hover:bg-[#F5F7F9] transition-colors">
-              <div className="w-12 h-12 bg-[#145A7A]/10 rounded-xl flex items-center justify-center shrink-0">
-                <tab.icon className="text-[#145A7A]" size={22} />
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${NAVY}0F` }}>
+                {tab.icon ? <tab.icon style={{ color: NAVY }} size={22} /> : <img src={logoIcon} alt="" className="w-7 h-7 object-contain" />}
               </div>
               <div>
                 <p className={`${FONT} text-lg font-semibold text-[#1A2B3C]`}>{tab.label}</p>
@@ -122,14 +125,14 @@ function Landing({ onSelect, lang, setLang }) {
 function Shell({ subtitle, onBack, children }) {
   return (
     <div className="min-h-screen bg-[#F5F7F9]">
-      <div className="bg-[#145A7A] px-5 py-4 flex items-center gap-3">
+      <div className="px-5 py-4 flex items-center gap-3" style={{ backgroundColor: NAVY }}>
         <button onClick={onBack} className="text-white/80 hover:text-white"><ArrowLeft size={20} /></button>
-        <div className="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center">
-          <Sprout className="text-white" size={17} />
+        <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center p-1.5 shrink-0">
+          <img src={logoIcon} alt="" className="w-full h-full object-contain" />
         </div>
         <div>
           <p className={`${FONT} text-white font-semibold leading-tight`}>FinSaarthi</p>
-          <p className={`${FONT} text-xs text-[#CFE3EC] leading-tight`}>{subtitle}</p>
+          <p className={`${FONT} text-xs text-white/70 leading-tight`}>{subtitle}</p>
         </div>
       </div>
       <div className="max-w-2xl mx-auto p-5">{children}</div>
@@ -208,9 +211,10 @@ function EnterpriseApp({ onBack, lang, setLang }) {
         <div className="flex gap-2 flex-wrap">
           {enterprises.map((e) => (
             <button key={e.id} onClick={() => setSelected(e)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium ${FONT} ${
-                selected.id === e.id ? "bg-[#145A7A] text-white" : "bg-white text-[#5B6B7A] border border-[#E2E6EA]"
-              }`}>
+              className={`px-3 py-1.5 rounded-full text-sm font-medium ${FONT}`}
+              style={selected.id === e.id
+                ? { backgroundColor: NAVY, color: "white" }
+                : { backgroundColor: "white", color: "#5B6B7A", border: "1px solid #E2E6EA" }}>
               {L(e.name, lang)}
             </button>
           ))}
@@ -220,10 +224,10 @@ function EnterpriseApp({ onBack, lang, setLang }) {
 
       <button onClick={startVoiceInput}
         className="w-full rounded-2xl mb-4 py-6 flex flex-col items-center gap-2 text-white shadow-sm"
-        style={{ backgroundColor: listening ? "#B3261E" : "#145A7A" }}>
+        style={{ backgroundColor: listening ? "#B3261E" : GREEN }}>
         <Mic size={30} className={listening ? "animate-pulse" : ""} />
         <span className={`${FONT} font-semibold text-base`}>{listening ? t.listening : t.tapSpeak}</span>
-        <span className={`${FONT} text-xs text-white/70`}>{t.tapSpeakSub}</span>
+        <span className={`${FONT} text-xs text-white/80`}>{t.tapSpeakSub}</span>
       </button>
 
       <Card>
@@ -246,7 +250,7 @@ function EnterpriseApp({ onBack, lang, setLang }) {
               <XAxis dataKey="month" fontSize={12} stroke="#8A97A3" axisLine={false} tickLine={false} />
               <YAxis fontSize={12} stroke="#8A97A3" axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid #E2E6EA", fontSize: 13 }} />
-              <Line type="monotone" dataKey="cashflow" stroke="#145A7A" strokeWidth={2.5} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="cashflow" stroke={NAVY} strokeWidth={2.5} dot={{ r: 3, fill: GREEN }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -256,7 +260,8 @@ function EnterpriseApp({ onBack, lang, setLang }) {
         <p className={`${FONT} font-semibold text-[#1A2B3C] mb-3`}>{t.orType}</p>
         <div className="flex gap-2 mb-3">
           <button onClick={() => setType("income")}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-medium ${FONT} ${type === "income" ? "bg-[#2E7D5B] text-white" : "bg-[#F5F7F9] text-[#5B6B7A]"}`}>
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium ${FONT}`}
+            style={type === "income" ? { backgroundColor: GREEN, color: "white" } : { backgroundColor: "#F5F7F9", color: "#5B6B7A" }}>
             {t.moneyIn}
           </button>
           <button onClick={() => setType("expense")}
@@ -272,7 +277,7 @@ function EnterpriseApp({ onBack, lang, setLang }) {
             onChange={(e) => setCategory(e.target.value)}
             className={`flex-1 border border-[#E2E6EA] rounded-xl px-3 py-2.5 text-sm ${FONT}`} />
         </div>
-        <button onClick={addTransaction} className={`w-full py-2.5 bg-[#1A2B3C] text-white rounded-xl text-sm font-semibold ${FONT}`}>
+        <button onClick={addTransaction} className={`w-full py-2.5 text-white rounded-xl text-sm font-semibold ${FONT}`} style={{ backgroundColor: NAVY }}>
           {t.addEntry}
         </button>
 
@@ -292,7 +297,7 @@ function EnterpriseApp({ onBack, lang, setLang }) {
           <div className="relative w-16 h-16 shrink-0">
             <svg viewBox="0 0 36 36" className="w-16 h-16 -rotate-90">
               <circle cx="18" cy="18" r="16" fill="none" stroke="#EEF1F4" strokeWidth="3.5" />
-              <circle cx="18" cy="18" r="16" fill="none" stroke="#145A7A" strokeWidth="3.5"
+              <circle cx="18" cy="18" r="16" fill="none" stroke={GREEN} strokeWidth="3.5"
                 strokeDasharray={`${selected.creditReadiness} 100`} strokeLinecap="round" />
             </svg>
             <div className={`absolute inset-0 flex items-center justify-center text-sm font-bold text-[#1A2B3C] ${FONT}`}>
@@ -309,7 +314,7 @@ function EnterpriseApp({ onBack, lang, setLang }) {
         <div className="flex items-center justify-between mb-2">
           <p className={`${FONT} font-semibold text-[#1A2B3C]`}>{t.riskAlert}</p>
           <button onClick={() => speak(L(selected.riskReason, lang), lang)}
-            className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-[#145A7A] bg-[#145A7A]/10 ${FONT}`}>
+            className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg ${FONT}`} style={{ color: NAVY, backgroundColor: `${NAVY}14` }}>
             <Volume2 size={13}/> {t.playAlert}
           </button>
         </div>
@@ -323,9 +328,8 @@ function EnterpriseApp({ onBack, lang, setLang }) {
         <div className="flex gap-2 mb-3 flex-wrap">
           {Object.entries(whatIfScenarios).map(([key, val]) => (
             <button key={key} onClick={() => setScenario(key)}
-              className={`px-3 py-1.5 rounded-xl text-sm font-medium ${FONT} ${
-                scenario === key ? "bg-[#145A7A] text-white" : "bg-[#F5F7F9] text-[#5B6B7A]"
-              }`}>
+              className={`px-3 py-1.5 rounded-xl text-sm font-medium ${FONT}`}
+              style={scenario === key ? { backgroundColor: GREEN, color: "white" } : { backgroundColor: "#F5F7F9", color: "#5B6B7A" }}>
               {L(val.label, lang)}
             </button>
           ))}
@@ -417,7 +421,7 @@ function NabardView({ onBack }) {
                           className={`${FONT} w-full aspect-square rounded-lg flex items-center justify-center text-white font-semibold transition-transform`}
                           style={{
                             backgroundColor: riskHeatColor(cell.risk),
-                            outline: isSelected ? "2px solid #1A2B3C" : "none",
+                            outline: isSelected ? `2px solid ${NAVY}` : "none",
                             outlineOffset: 2,
                             transform: isSelected ? "scale(1.08)" : "scale(1)",
                             minWidth: 40,
