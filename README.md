@@ -1,6 +1,8 @@
 <div align="center">
 
-<img src="./screenshots/finsaarthi-logo-full.png" alt="FinSaarthi Logo" width="260"/>
+<img src="./screenshots/finsaarthi-logo-full.png" alt="FinSaarthi Logo" width="460"/>
+
+<br>
 
 # FinSaarthi
 
