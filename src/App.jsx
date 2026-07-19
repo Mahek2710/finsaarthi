@@ -3,9 +3,9 @@ import { enterprises, whatIfScenarios, districtSummary, translations } from "./m
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
-import {
-  Sprout, Users, BarChart3, Mic, Volume2, AlertTriangle, Globe, ChevronDown,
-} from "lucide-react";
+import { Mic, Volume2, ArrowLeft, Globe, Sprout, Users, BarChart3 } from "lucide-react";
+
+const FONT = "font-['Noto_Sans',sans-serif]";
 
 function speak(text) {
   const utterance = new SpeechSynthesisUtterance(text);
@@ -13,286 +13,356 @@ function speak(text) {
   window.speechSynthesis.speak(utterance);
 }
 
+function riskColor(risk) {
+  return risk === "High" ? "#B3261E" : risk === "Medium" ? "#C77800" : "#2E7D5B";
+}
+function riskPlainLabel(risk) {
+  return risk === "High" ? "Needs attention now" : risk === "Medium" ? "Keep an eye on this" : "Doing okay";
+}
+
+function Badge({ risk }) {
+  const c = riskColor(risk);
+  return (
+    <span
+      className={`${FONT} text-xs font-semibold px-3 py-1.5 rounded-full`}
+      style={{ backgroundColor: `${c}1A`, color: c }}
+    >
+      {risk} risk
+    </span>
+  );
+}
+
+function LedgerAmount({ amount, type }) {
+  const isCredit = type === "income";
+  return (
+    <span className={`${FONT} font-semibold tabular-nums`} style={{ color: isCredit ? "#2E7D5B" : "#B3261E" }}>
+      {isCredit ? "+" : "−"}₹{amount.toLocaleString("en-IN")}
+    </span>
+  );
+}
+
 function FactorBar({ label, impact, note }) {
   const isPositive = impact >= 0;
+  const c = isPositive ? "#2E7D5B" : "#B3261E";
   return (
-    <div className="mb-3 last:mb-0">
-      <div className="flex justify-between text-sm mb-1">
-        <span className="text-gray-600">{label}</span>
-        <span className={isPositive ? "text-emerald-600 font-medium tabular-nums" : "text-rose-600 font-medium tabular-nums"}>
-          {isPositive ? "+" : ""}{impact}
-        </span>
+    <div className="mb-3">
+      <div className={`flex justify-between text-sm mb-1 ${FONT} text-[#1A2B3C]`}>
+        <span>{label}</span>
+        <span className="font-semibold tabular-nums" style={{ color: c }}>{isPositive ? "+" : ""}{impact}</span>
       </div>
-      <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full ${isPositive ? "bg-emerald-500" : "bg-rose-500"}`}
-          style={{ width: `${Math.min(Math.abs(impact) * 2.5, 100)}%` }}
-        />
+      <div className="w-full h-2 bg-[#E2E6EA] rounded-full overflow-hidden">
+        <div className="h-full rounded-full" style={{ width: `${Math.min(Math.abs(impact) * 2.5, 100)}%`, backgroundColor: c }} />
       </div>
-      <p className="text-xs text-gray-400 mt-1">{note}</p>
+      <p className={`text-xs text-[#5B6B7A] mt-1 ${FONT}`}>{note}</p>
     </div>
   );
 }
 
-const NAV = [
-  { key: "enterprise", label: "Enterprise", icon: Sprout },
-  { key: "officer", label: "Field officer", icon: Users },
-  { key: "nabard", label: "NABARD", icon: BarChart3 },
-];
-
-// ---------- APP SHELL: sidebar (desktop) + bottom bar (mobile) ----------
-function AppShell({ view, setView, children }) {
+function Landing({ onSelect }) {
+  const tabs = [
+    { key: "enterprise", label: "My business", desc: "Speak or type your income and expenses, see your score", icon: Sprout },
+    { key: "officer", label: "Field officer", desc: "See which enterprises need a visit, and why", icon: Users },
+    { key: "nabard", label: "NABARD view", desc: "District and sector trends across the network", icon: BarChart3 },
+  ];
   return (
-    <div className="min-h-screen bg-[#F7F8F5] flex">
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-60 flex-col border-r border-gray-200 bg-white px-4 py-6 fixed h-full">
-        <div className="flex items-center gap-2.5 px-2 mb-8">
-          <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-            <Sprout className="text-white" size={16} />
+    <div className="min-h-screen bg-[#F5F7F9] flex items-center justify-center p-6">
+      <div className="max-w-xl w-full">
+        <div className="bg-[#145A7A] rounded-t-2xl px-8 py-10 text-center">
+          <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Sprout className="text-white" size={30} />
           </div>
-          <div>
-            <p className="font-semibold text-gray-900 text-[15px] leading-none">FinSaarthi</p>
-            <p className="text-[11px] text-gray-400 mt-0.5">Prediction to prevention</p>
-          </div>
+          <h1 className={`${FONT} text-4xl font-bold text-white mb-2`}>FinSaarthi</h1>
+          <p className={`${FONT} text-[#CFE3EC] text-base`}>Know your business finances, before problems happen</p>
         </div>
-        <nav className="flex flex-col gap-1">
-          {NAV.map((n) => {
-            const Icon = n.icon;
-            const active = view === n.key;
-            return (
-              <button
-                key={n.key}
-                onClick={() => setView(n.key)}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  active ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-50"
-                }`}
-              >
-                <Icon size={16} />
-                {n.label}
-              </button>
-            );
-          })}
-        </nav>
-        <div className="mt-auto px-3 py-3 rounded-xl bg-gray-50 border border-gray-100">
-          <p className="text-[11px] text-gray-400 leading-relaxed">
-            Demo mode — showing simulated enterprise data
-          </p>
-        </div>
-      </aside>
 
-      {/* Main content */}
-      <div className="flex-1 md:ml-60 pb-20 md:pb-0">
-        <div className="max-w-2xl mx-auto px-4 md:px-8 py-6 md:py-8">{children}</div>
-      </div>
-
-      {/* Mobile bottom bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 z-10">
-        {NAV.map((n) => {
-          const Icon = n.icon;
-          const active = view === n.key;
-          return (
+        <div className="bg-white rounded-b-2xl border border-t-0 border-[#E2E6EA] p-3">
+          {tabs.map((t) => (
             <button
-              key={n.key}
-              onClick={() => setView(n.key)}
-              className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium ${
-                active ? "text-gray-900" : "text-gray-400"
-              }`}
+              key={t.key}
+              onClick={() => onSelect(t.key)}
+              className="w-full text-left px-4 py-4 flex items-center gap-4 rounded-xl hover:bg-[#F5F7F9] transition-colors"
             >
-              <Icon size={19} />
-              {n.label}
+              <div className="w-12 h-12 bg-[#145A7A]/10 rounded-xl flex items-center justify-center shrink-0">
+                <t.icon className="text-[#145A7A]" size={22} />
+              </div>
+              <div>
+                <p className={`${FONT} text-lg font-semibold text-[#1A2B3C]`}>{t.label}</p>
+                <p className={`${FONT} text-sm text-[#5B6B7A]`}>{t.desc}</p>
+              </div>
             </button>
-          );
-        })}
-      </nav>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
-function SectionLabel({ children }) {
-  return <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wide mb-3">{children}</p>;
+function Shell({ subtitle, onBack, children }) {
+  return (
+    <div className="min-h-screen bg-[#F5F7F9]">
+      <div className="bg-[#145A7A] px-5 py-4 flex items-center gap-3">
+        <button onClick={onBack} className="text-white/80 hover:text-white">
+          <ArrowLeft size={20} />
+        </button>
+        <div className="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center">
+          <Sprout className="text-white" size={17} />
+        </div>
+        <div>
+          <p className={`${FONT} text-white font-semibold leading-tight`}>FinSaarthi</p>
+          <p className={`${FONT} text-xs text-[#CFE3EC] leading-tight`}>{subtitle}</p>
+        </div>
+      </div>
+      <div className="max-w-2xl mx-auto p-5">{children}</div>
+    </div>
+  );
 }
 
-// ---------- ENTERPRISE APP ----------
-function EnterpriseApp() {
+function Card({ children, className = "" }) {
+  return <div className={`bg-white border border-[#E2E6EA] rounded-2xl p-5 mb-4 ${className}`}>{children}</div>;
+}
+
+function EnterpriseApp({ onBack }) {
   const [selected, setSelected] = useState(enterprises[0]);
   const [scenario, setScenario] = useState("none");
   const [listening, setListening] = useState(false);
-  const [voiceText, setVoiceText] = useState("");
   const [lang, setLang] = useState("en");
   const t = translations[lang];
 
-  const scenarioData = whatIfScenarios[scenario];
-  const adjustedForecast = selected.forecast.map((point) => ({
-    ...point,
-    cashflow: Math.round(point.cashflow * (1 + scenarioData.deltaFactor)),
-  }));
+  const [txMap, setTxMap] = useState(() => {
+    const map = {};
+    enterprises.forEach((e) => { map[e.id] = e.transactions; });
+    return map;
+  });
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("");
+  const [type, setType] = useState("expense");
 
-  const riskStyles = {
-    High: "bg-rose-50 text-rose-700 ring-1 ring-rose-200",
-    Medium: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-    Low: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-  };
+  const transactions = txMap[selected.id];
+  const netThisSession = transactions.reduce(
+    (sum, tx) => sum + (tx.type === "income" ? tx.amount : -tx.amount), 0
+  );
+  const liveHealthScore = Math.max(0, Math.min(100,
+    Math.round(selected.baseHealthScore + netThisSession / 500)
+  ));
+
+  const scenarioData = whatIfScenarios[scenario];
+  const adjustedForecast = selected.forecast.map((point, i) => {
+    let cashflow = Math.round(point.cashflow * (1 + scenarioData.deltaFactor));
+    if (i === selected.forecast.length - 1) cashflow += netThisSession;
+    return { ...point, cashflow };
+  });
 
   const startVoiceInput = () => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { alert("Voice input not supported, use Chrome"); return; }
-    const recognition = new SR();
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { alert("Voice input not supported, use Chrome"); return; }
+    const recognition = new SpeechRecognition();
     recognition.lang = lang === "hi" ? "hi-IN" : "en-IN";
     setListening(true);
     recognition.start();
-    recognition.onresult = (e) => { setVoiceText(e.results[0][0].transcript); setListening(false); };
+    recognition.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      setCategory(text);
+      const numberMatch = text.match(/\d+/);
+      if (numberMatch) setAmount(numberMatch[0]);
+      setListening(false);
+    };
     recognition.onerror = () => setListening(false);
   };
 
+  const addTransaction = () => {
+    if (!amount || !category) return;
+    const newTx = { id: Date.now(), type, amount: Number(amount), category };
+    setTxMap((prev) => ({ ...prev, [selected.id]: [newTx, ...prev[selected.id]] }));
+    speak(`${type === "income" ? "Added income" : "Added expense"} of ${amount} rupees for ${category}`);
+    setAmount("");
+    setCategory("");
+  };
+
+  const scoreColor = liveHealthScore >= 70 ? "#2E7D5B" : liveHealthScore >= 45 ? "#C77800" : "#B3261E";
+
   return (
-    <div>
-      <div className="flex justify-between items-start mb-5 flex-wrap gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">{selected.name}</h1>
-          <p className="text-sm text-gray-400">{selected.sector} · {selected.district}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setLang(lang === "en" ? "hi" : "en")}
-            className="flex items-center gap-1.5 text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-500 bg-white"
-          >
-            <Globe size={14} /> {lang === "en" ? "EN" : "हिं"}
-          </button>
-          <div className="relative">
-            <select
-              value={selected.id}
-              onChange={(e) => setSelected(enterprises.find((x) => x.id === Number(e.target.value)))}
-              className="appearance-none text-sm border border-gray-200 rounded-lg pl-3 pr-8 py-1.5 bg-white text-gray-700"
+    <Shell subtitle={t.appTitle} onBack={onBack}>
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex gap-2 flex-wrap">
+          {enterprises.map((e) => (
+            <button
+              key={e.id}
+              onClick={() => setSelected(e)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium ${FONT} ${
+                selected.id === e.id ? "bg-[#145A7A] text-white" : "bg-white text-[#5B6B7A] border border-[#E2E6EA]"
+              }`}
             >
-              {enterprises.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
+              {e.name}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => setLang(lang === "en" ? "hi" : "en")}
+          className={`flex items-center gap-1.5 text-sm ${FONT} border border-[#E2E6EA] rounded-lg px-2.5 py-1.5 text-[#5B6B7A] bg-white`}
+        >
+          <Globe size={14} /> {lang === "en" ? "EN" : "हिं"}
+        </button>
+      </div>
+
+      {/* Voice is the primary action — biggest element on the screen */}
+      <button
+        onClick={startVoiceInput}
+        className="w-full rounded-2xl mb-4 py-6 flex flex-col items-center gap-2 text-white shadow-sm"
+        style={{ backgroundColor: listening ? "#B3261E" : "#145A7A" }}
+      >
+        <Mic size={30} className={listening ? "animate-pulse" : ""} />
+        <span className={`${FONT} font-semibold text-base`}>
+          {listening ? "Listening…" : "Tap and speak your entry"}
+        </span>
+        <span className={`${FONT} text-xs text-white/70`}>e.g. "500 rupees feed purchase"</span>
+      </button>
+
+      <Card>
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <p className={`text-sm text-[#5B6B7A] ${FONT}`}>{t.healthScore}</p>
+            <p className={`text-4xl font-bold ${FONT} mt-1`} style={{ color: scoreColor }}>
+              {liveHealthScore}<span className="text-base text-[#8A97A3]">/100</span>
+            </p>
+            <p className={`text-sm font-medium ${FONT} mt-0.5`} style={{ color: scoreColor }}>
+              {riskPlainLabel(selected.risk)}
+            </p>
           </div>
+          <Badge risk={selected.risk} />
         </div>
-      </div>
-
-      {/* Hero stats row */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-white rounded-2xl border border-gray-200 p-4">
-          <p className="text-xs text-gray-400 mb-1">{t.healthScore}</p>
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">{selected.healthScore}</p>
-          <span className={`inline-block mt-2 px-2 py-0.5 rounded-full text-xs font-medium ${riskStyles[selected.risk]}`}>
-            {selected.risk} risk
-          </span>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-4">
-          <p className="text-xs text-gray-400 mb-1">{t.creditReadiness}</p>
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">{selected.creditReadiness}</p>
-          <p className="text-xs text-gray-400 mt-2">out of 100</p>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
-        <SectionLabel>3–6 month cash flow forecast</SectionLabel>
-        <div className="h-48 -ml-2">
+        <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={adjustedForecast}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-              <XAxis dataKey="month" fontSize={11} stroke="#b0b0b0" axisLine={false} tickLine={false} />
-              <YAxis fontSize={11} stroke="#b0b0b0" axisLine={false} tickLine={false} width={40} />
-              <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid #e5e7eb", fontSize: 12 }} />
-              <Line type="monotone" dataKey="cashflow" stroke="#065f46" strokeWidth={2.5} dot={{ r: 3, fill: "#065f46" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#EEF1F4" vertical={false} />
+              <XAxis dataKey="month" fontSize={12} stroke="#8A97A3" axisLine={false} tickLine={false} />
+              <YAxis fontSize={12} stroke="#8A97A3" axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid #E2E6EA", fontSize: 13 }} />
+              <Line type="monotone" dataKey="cashflow" stroke="#145A7A" strokeWidth={2.5} dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </Card>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <p className="font-medium text-gray-900 text-sm flex items-center gap-1.5">
-            <AlertTriangle size={14} className="text-amber-500" /> {t.riskAlert}
-          </p>
-          <button onClick={() => speak(selected.riskReason)} className="flex items-center gap-1 text-xs px-2.5 py-1.5 bg-gray-50 text-gray-600 rounded-lg border border-gray-200">
-            <Volume2 size={13} /> {t.playAlert}
+      <Card>
+        <p className={`${FONT} font-semibold text-[#1A2B3C] mb-3`}>Or type an entry</p>
+        <div className="flex gap-2 mb-3">
+          <button
+            onClick={() => setType("income")}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium ${FONT} ${type === "income" ? "bg-[#2E7D5B] text-white" : "bg-[#F5F7F9] text-[#5B6B7A]"}`}
+          >
+            Money in
+          </button>
+          <button
+            onClick={() => setType("expense")}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium ${FONT} ${type === "expense" ? "bg-[#B3261E] text-white" : "bg-[#F5F7F9] text-[#5B6B7A]"}`}
+          >
+            Money out
           </button>
         </div>
-        <p className="text-sm text-gray-600 mb-4 bg-gray-50 rounded-lg px-3 py-2.5">{selected.riskReason}</p>
-        <SectionLabel>{t.whyFlagged}</SectionLabel>
-        {selected.factors.map((f, i) => <FactorBar key={i} {...f} />)}
-      </div>
+        <div className="flex gap-2 mb-3">
+          <input
+            type="number" placeholder="₹ Amount" value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className={`w-28 border border-[#E2E6EA] rounded-xl px-3 py-2.5 text-sm ${FONT}`}
+          />
+          <input
+            type="text" placeholder="e.g. Milk sale" value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className={`flex-1 border border-[#E2E6EA] rounded-xl px-3 py-2.5 text-sm ${FONT}`}
+          />
+        </div>
+        <button
+          onClick={addTransaction}
+          className={`w-full py-2.5 bg-[#1A2B3C] text-white rounded-xl text-sm font-semibold ${FONT}`}
+        >
+          Add entry
+        </button>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
-        <SectionLabel>{t.whatIf}</SectionLabel>
+        <div className="mt-4 pt-4 border-t border-[#EEF1F4] space-y-2.5 max-h-40 overflow-y-auto">
+          {transactions.map((tx) => (
+            <div key={tx.id} className="flex justify-between text-sm">
+              <span className={`text-[#5B6B7A] ${FONT}`}>{tx.category}</span>
+              <LedgerAmount amount={tx.amount} type={tx.type} />
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <p className={`${FONT} font-semibold text-[#1A2B3C] mb-3`}>{t.creditReadiness}</p>
+        <div className="flex items-center gap-4">
+          <div className="relative w-16 h-16 shrink-0">
+            <svg viewBox="0 0 36 36" className="w-16 h-16 -rotate-90">
+              <circle cx="18" cy="18" r="16" fill="none" stroke="#EEF1F4" strokeWidth="3.5" />
+              <circle cx="18" cy="18" r="16" fill="none" stroke="#145A7A" strokeWidth="3.5"
+                strokeDasharray={`${selected.creditReadiness} 100`} strokeLinecap="round" />
+            </svg>
+            <div className={`absolute inset-0 flex items-center justify-center text-sm font-bold text-[#1A2B3C] ${FONT}`}>
+              {selected.creditReadiness}
+            </div>
+          </div>
+          <ul className={`text-sm text-[#5B6B7A] space-y-1.5 ${FONT}`}>
+            {selected.readinessTips.map((tip, i) => <li key={i}>• {tip}</li>)}
+          </ul>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex items-center justify-between mb-2">
+          <p className={`${FONT} font-semibold text-[#1A2B3C]`}>{t.riskAlert}</p>
+          <button onClick={() => speak(selected.riskReason)} className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-[#145A7A] bg-[#145A7A]/10 ${FONT}`}>
+            <Volume2 size={13}/> {t.playAlert}
+          </button>
+        </div>
+        <p className={`text-sm text-[#5B6B7A] mb-4 ${FONT}`}>{selected.riskReason}</p>
+        <p className={`font-medium text-sm text-[#1A2B3C] mb-3 ${FONT}`}>{t.whyFlagged}</p>
+        {selected.factors.map((f, i) => <FactorBar key={i} {...f} />)}
+      </Card>
+
+      <Card className="mb-0">
+        <p className={`${FONT} font-semibold text-[#1A2B3C] mb-3`}>{t.whatIf}</p>
         <div className="flex gap-2 mb-3 flex-wrap">
           {Object.entries(whatIfScenarios).map(([key, val]) => (
             <button key={key} onClick={() => setScenario(key)}
-              className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                scenario === key ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-600 border-gray-200"
+              className={`px-3 py-1.5 rounded-xl text-sm font-medium ${FONT} ${
+                scenario === key ? "bg-[#145A7A] text-white" : "bg-[#F5F7F9] text-[#5B6B7A]"
               }`}>
               {val.label}
             </button>
           ))}
         </div>
-        {scenarioData.note && <p className="text-sm text-gray-500">{scenarioData.note}</p>}
-      </div>
-
-      <div className="bg-white rounded-2xl border border-gray-200 p-5">
-        <SectionLabel>{t.voiceEntry}</SectionLabel>
-        <button onClick={startVoiceInput} className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium">
-          <Mic size={15} /> {listening ? "Listening..." : t.speakEntry}
-        </button>
-        {voiceText && <p className="mt-3 text-sm text-gray-500">You said: "{voiceText}"</p>}
-      </div>
-    </div>
+        {scenarioData.note && <p className={`text-sm text-[#5B6B7A] ${FONT}`}>{scenarioData.note}</p>}
+      </Card>
+    </Shell>
   );
 }
 
-// ---------- FIELD OFFICER ----------
-function FieldOfficerDashboard() {
+function FieldOfficerDashboard({ onBack }) {
   const [expanded, setExpanded] = useState(null);
-  const counts = {
-    High: enterprises.filter((e) => e.risk === "High").length,
-    Medium: enterprises.filter((e) => e.risk === "Medium").length,
-    Low: enterprises.filter((e) => e.risk === "Low").length,
-  };
   return (
-    <div>
-      <h1 className="text-xl font-semibold text-gray-900 mb-1">Portfolio overview</h1>
-      <p className="text-sm text-gray-400 mb-5">{enterprises.length} enterprises tracked</p>
-
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 text-center">
-          <p className="text-2xl font-bold text-rose-600">{counts.High}</p>
-          <p className="text-xs text-gray-400 mt-0.5">High risk</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 text-center">
-          <p className="text-2xl font-bold text-amber-600">{counts.Medium}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Medium risk</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 text-center">
-          <p className="text-2xl font-bold text-emerald-600">{counts.Low}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Low risk</p>
-        </div>
-      </div>
-
+    <Shell subtitle="Field officer dashboard" onBack={onBack}>
       <div className="space-y-2.5">
         {enterprises.map((e) => {
-          const dot = e.risk === "High" ? "bg-rose-500" : e.risk === "Medium" ? "bg-amber-500" : "bg-emerald-500";
           const isOpen = expanded === e.id;
           return (
-            <div key={e.id} className="bg-white rounded-2xl border border-gray-200 p-4">
+            <div key={e.id} className="bg-white rounded-2xl border border-[#E2E6EA] p-4">
               <div className="flex justify-between items-center cursor-pointer" onClick={() => setExpanded(isOpen ? null : e.id)}>
                 <div className="flex items-center gap-3">
-                  <span className={`w-2 h-2 rounded-full ${dot}`} />
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: riskColor(e.risk) }} />
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">{e.name}</p>
-                    <p className="text-xs text-gray-400">{e.sector} · {e.district}</p>
+                    <p className={`${FONT} font-semibold text-[#1A2B3C]`}>{e.name}</p>
+                    <p className={`text-xs text-[#8A97A3] ${FONT}`}>{e.sector} · {e.district}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-gray-900">{e.healthScore}<span className="text-gray-300">/100</span></p>
-                  <p className="text-xs text-gray-400">{e.risk} risk</p>
+                  <Badge risk={e.risk} />
+                  <p className={`text-xs text-[#8A97A3] mt-1 ${FONT}`}>Health: {e.healthScore}/100</p>
                 </div>
               </div>
+              <p className={`text-sm text-[#5B6B7A] mt-2 pl-5 ${FONT}`}>{e.riskReason}</p>
               {isOpen && (
-                <div className="mt-3 pt-3 border-t border-gray-100 pl-5">
-                  <p className="text-sm text-gray-500 mb-3">{e.riskReason}</p>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Contributing factors</p>
+                <div className="mt-3 pt-3 border-t border-[#EEF1F4] pl-5">
+                  <p className={`text-xs font-medium text-[#8A97A3] mb-2 uppercase tracking-wide ${FONT}`}>Contributing factors</p>
                   {e.factors.map((f, i) => <FactorBar key={i} {...f} />)}
                 </div>
               )}
@@ -300,43 +370,33 @@ function FieldOfficerDashboard() {
           );
         })}
       </div>
-    </div>
+    </Shell>
   );
 }
 
-// ---------- NABARD VIEW ----------
-function NabardView() {
-  const totalEnterprises = districtSummary.reduce((s, d) => s + d.enterprises, 0);
-  const totalHighRisk = districtSummary.reduce((s, d) => s + d.highRisk, 0);
+function NabardView({ onBack }) {
   return (
-    <div>
-      <h1 className="text-xl font-semibold text-gray-900 mb-1">District & sector overview</h1>
-      <p className="text-sm text-gray-400 mb-5">{totalEnterprises} enterprises · {totalHighRisk} flagged high risk</p>
-
+    <Shell subtitle="NABARD aggregate view" onBack={onBack}>
       <div className="grid grid-cols-2 gap-3">
         {districtSummary.map((d) => (
-          <div key={d.district} className="bg-white rounded-2xl border border-gray-200 p-4">
-            <p className="font-semibold text-gray-900 text-sm mb-3">{d.district}</p>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-gray-400">Enterprises</span><span className="font-medium text-gray-900 tabular-nums">{d.enterprises}</span></div>
-              <div className="flex justify-between"><span className="text-gray-400">Avg health</span><span className="font-medium text-gray-900 tabular-nums">{d.avgHealth}/100</span></div>
-              <div className="flex justify-between"><span className="text-gray-400">High risk</span><span className="font-medium text-rose-600 tabular-nums">{d.highRisk}</span></div>
+          <div key={d.district} className="bg-white rounded-2xl border border-[#E2E6EA] p-4">
+            <p className={`${FONT} font-semibold text-[#1A2B3C] mb-3`}>{d.district}</p>
+            <div className="space-y-1.5 text-sm">
+              <p className={`text-[#5B6B7A] ${FONT}`}>Enterprises tracked <span className={`float-right text-[#1A2B3C] font-semibold ${FONT}`}>{d.enterprises}</span></p>
+              <p className={`text-[#5B6B7A] ${FONT}`}>Avg health score <span className={`float-right text-[#1A2B3C] font-semibold ${FONT}`}>{d.avgHealth}/100</span></p>
+              <p className={`text-[#5B6B7A] ${FONT}`}>High risk <span className="float-right font-semibold" style={{ color: "#B3261E" }}>{d.highRisk}</span></p>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </Shell>
   );
 }
 
-// ---------- ROOT ----------
 export default function App() {
-  const [view, setView] = useState("enterprise");
-  return (
-    <AppShell view={view} setView={setView}>
-      {view === "enterprise" && <EnterpriseApp />}
-      {view === "officer" && <FieldOfficerDashboard />}
-      {view === "nabard" && <NabardView />}
-    </AppShell>
-  );
+  const [view, setView] = useState("landing");
+  if (view === "landing") return <Landing onSelect={setView} />;
+  if (view === "enterprise") return <EnterpriseApp onBack={() => setView("landing")} />;
+  if (view === "officer") return <FieldOfficerDashboard onBack={() => setView("landing")} />;
+  if (view === "nabard") return <NabardView onBack={() => setView("landing")} />;
 }
