@@ -262,6 +262,6 @@ By combining AI, explainable insights and multilingual accessibility, the platfo
 
 **Built for NABARD Hackathon 2026**
 
-**FinSaarthi — From Prediction to Prevention**
+**FinSaarthi - From Prediction to Prevention**
 
 </div>
