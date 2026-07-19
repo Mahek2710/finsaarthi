@@ -122,6 +122,35 @@ export const districtSummary = [
   { district: "Indore", enterprises: 87, avgHealth: 71, highRisk: 14 },
 ];
 
+export const sectors = ["Dairy", "Handicrafts", "Poultry", "Food Processing", "Retail"];
+export const districts = ["Nashik", "Jaipur", "Nagpur", "Indore"];
+
+export const heatmapData = [
+  { district: "Nashik", sector: "Dairy", risk: 58, enterprises: 34, note: "Feed costs rising, transaction dips flagged in 6 units" },
+  { district: "Nashik", sector: "Handicrafts", risk: 22, enterprises: 18, note: "Stable, festival demand supporting cash flow" },
+  { district: "Nashik", sector: "Poultry", risk: 71, enterprises: 28, note: "Feed price shock affecting most poultry units" },
+  { district: "Nashik", sector: "Food Processing", risk: 45, enterprises: 26, note: "Mixed signals, seasonal dip expected" },
+  { district: "Nashik", sector: "Retail", risk: 30, enterprises: 22, note: "Steady UPI activity, low volatility" },
+
+  { district: "Jaipur", sector: "Dairy", risk: 35, enterprises: 20, note: "Healthy repayment history across cohort" },
+  { district: "Jaipur", sector: "Handicrafts", risk: 15, enterprises: 41, note: "Strong export-linked demand, low risk" },
+  { district: "Jaipur", sector: "Poultry", risk: 40, enterprises: 12, note: "Small cohort, feed costs moderate" },
+  { district: "Jaipur", sector: "Food Processing", risk: 28, enterprises: 15, note: "Consistent transaction frequency" },
+  { district: "Jaipur", sector: "Retail", risk: 33, enterprises: 6, note: "Limited data, cohort baseline applied" },
+
+  { district: "Nagpur", sector: "Dairy", risk: 66, enterprises: 39, note: "Repayment delays rising across cohort" },
+  { district: "Nagpur", sector: "Handicrafts", risk: 48, enterprises: 19, note: "Demand softening post-season" },
+  { district: "Nagpur", sector: "Poultry", risk: 80, enterprises: 44, note: "Highest concentration of high-risk flags in network" },
+  { district: "Nagpur", sector: "Food Processing", risk: 58, enterprises: 31, note: "Input price shocks affecting margins" },
+  { district: "Nagpur", sector: "Retail", risk: 42, enterprises: 23, note: "Transaction frequency below cohort average" },
+
+  { district: "Indore", sector: "Dairy", risk: 40, enterprises: 24, note: "Stable, minor seasonal dip" },
+  { district: "Indore", sector: "Handicrafts", risk: 20, enterprises: 17, note: "Consistent weekly cash flow" },
+  { district: "Indore", sector: "Poultry", risk: 55, enterprises: 21, note: "Feed costs pressuring margins" },
+  { district: "Indore", sector: "Food Processing", risk: 38, enterprises: 16, note: "On par with regional average" },
+  { district: "Indore", sector: "Retail", risk: 25, enterprises: 9, note: "Small but stable cohort" },
+];
+
 // Simple, everyday spoken Hindi — not formal/Sanskritized.
 export const translations = {
   en: {

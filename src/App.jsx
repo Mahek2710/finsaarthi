@@ -1,33 +1,44 @@
 import { useState } from "react";
-import { enterprises, whatIfScenarios, districtSummary, translations } from "./mockData";
+import { enterprises, whatIfScenarios, districtSummary, translations, sectors, districts, heatmapData } from "./mockData";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
 import { Mic, Volume2, ArrowLeft, Globe, Sprout, Users, BarChart3 } from "lucide-react";
 
 const FONT = "font-['Noto_Sans',sans-serif]";
+const L = (field, lang) => (field && (field[lang] || field.en)) ?? "";
 
-function speak(text) {
+function speak(text, lang) {
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-IN";
+  utterance.lang = lang === "hi" ? "hi-IN" : "en-IN";
   window.speechSynthesis.speak(utterance);
 }
 
 function riskColor(risk) {
   return risk === "High" ? "#B3261E" : risk === "Medium" ? "#C77800" : "#2E7D5B";
 }
-function riskPlainLabel(risk) {
-  return risk === "High" ? "Needs attention now" : risk === "Medium" ? "Keep an eye on this" : "Doing okay";
+function riskLabel(risk, t) {
+  return risk === "High" ? t.riskHigh : risk === "Medium" ? t.riskMedium : t.riskLow;
+}
+function riskPlainLabel(risk, t) {
+  return risk === "High" ? t.needsAttention : risk === "Medium" ? t.keepEye : t.doingOkay;
 }
 
-function Badge({ risk }) {
+function lerpColor(a, b, t) {
+  const ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
+  const ar = (ah >> 16) & 0xff, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
+  const br = (bh >> 16) & 0xff, bg = (bh >> 8) & 0xff, bb = bh & 0xff;
+  return `rgb(${Math.round(ar + (br - ar) * t)},${Math.round(ag + (bg - ag) * t)},${Math.round(ab + (bb - ab) * t)})`;
+}
+function riskHeatColor(risk) {
+  return risk <= 50 ? lerpColor("#2E7D5B", "#C77800", risk / 50) : lerpColor("#C77800", "#B3261E", (risk - 50) / 50);
+}
+
+function Badge({ risk, t }) {
   const c = riskColor(risk);
   return (
-    <span
-      className={`${FONT} text-xs font-semibold px-3 py-1.5 rounded-full`}
-      style={{ backgroundColor: `${c}1A`, color: c }}
-    >
-      {risk} risk
+    <span className={`${FONT} text-xs font-semibold px-3 py-1.5 rounded-full`} style={{ backgroundColor: `${c}1A`, color: c }}>
+      {riskLabel(risk, t)}
     </span>
   );
 }
@@ -41,53 +52,64 @@ function LedgerAmount({ amount, type }) {
   );
 }
 
-function FactorBar({ label, impact, note }) {
+function FactorBar({ label, impact, note, lang }) {
   const isPositive = impact >= 0;
   const c = isPositive ? "#2E7D5B" : "#B3261E";
   return (
     <div className="mb-3">
       <div className={`flex justify-between text-sm mb-1 ${FONT} text-[#1A2B3C]`}>
-        <span>{label}</span>
+        <span>{L(label, lang)}</span>
         <span className="font-semibold tabular-nums" style={{ color: c }}>{isPositive ? "+" : ""}{impact}</span>
       </div>
       <div className="w-full h-2 bg-[#E2E6EA] rounded-full overflow-hidden">
         <div className="h-full rounded-full" style={{ width: `${Math.min(Math.abs(impact) * 2.5, 100)}%`, backgroundColor: c }} />
       </div>
-      <p className={`text-xs text-[#5B6B7A] mt-1 ${FONT}`}>{note}</p>
+      <p className={`text-xs text-[#5B6B7A] mt-1 ${FONT}`}>{L(note, lang)}</p>
     </div>
   );
 }
 
-function Landing({ onSelect }) {
+function LangToggle({ lang, setLang }) {
+  return (
+    <button
+      onClick={() => setLang(lang === "en" ? "hi" : "en")}
+      className={`flex items-center gap-1.5 text-sm ${FONT} border border-[#E2E6EA] rounded-lg px-2.5 py-1.5 text-[#5B6B7A] bg-white shrink-0`}
+    >
+      <Globe size={14} /> {lang === "en" ? "हिं में देखें" : "View in English"}
+    </button>
+  );
+}
+
+function Landing({ onSelect, lang, setLang }) {
+  const t = translations[lang];
   const tabs = [
-    { key: "enterprise", label: "My business", desc: "Speak or type your income and expenses, see your score", icon: Sprout },
-    { key: "officer", label: "Field officer", desc: "See which enterprises need a visit, and why", icon: Users },
-    { key: "nabard", label: "NABARD view", desc: "District and sector trends across the network", icon: BarChart3 },
+    { key: "enterprise", label: t.tabEnterprise, desc: t.tabEnterpriseDesc, icon: Sprout },
+    { key: "officer", label: t.tabOfficer, desc: t.tabOfficerDesc, icon: Users },
+    { key: "nabard", label: t.tabNabard, desc: t.tabNabardDesc, icon: BarChart3 },
   ];
   return (
     <div className="min-h-screen bg-[#F5F7F9] flex items-center justify-center p-6">
       <div className="max-w-xl w-full">
+        <div className="flex justify-end mb-3">
+          <LangToggle lang={lang} setLang={setLang} />
+        </div>
         <div className="bg-[#145A7A] rounded-t-2xl px-8 py-10 text-center">
           <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Sprout className="text-white" size={30} />
           </div>
           <h1 className={`${FONT} text-4xl font-bold text-white mb-2`}>FinSaarthi</h1>
-          <p className={`${FONT} text-[#CFE3EC] text-base`}>Know your business finances, before problems happen</p>
+          <p className={`${FONT} text-[#CFE3EC] text-base`}>{t.landingTagline}</p>
         </div>
-
         <div className="bg-white rounded-b-2xl border border-t-0 border-[#E2E6EA] p-3">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => onSelect(t.key)}
-              className="w-full text-left px-4 py-4 flex items-center gap-4 rounded-xl hover:bg-[#F5F7F9] transition-colors"
-            >
+          {tabs.map((tab) => (
+            <button key={tab.key} onClick={() => onSelect(tab.key)}
+              className="w-full text-left px-4 py-4 flex items-center gap-4 rounded-xl hover:bg-[#F5F7F9] transition-colors">
               <div className="w-12 h-12 bg-[#145A7A]/10 rounded-xl flex items-center justify-center shrink-0">
-                <t.icon className="text-[#145A7A]" size={22} />
+                <tab.icon className="text-[#145A7A]" size={22} />
               </div>
               <div>
-                <p className={`${FONT} text-lg font-semibold text-[#1A2B3C]`}>{t.label}</p>
-                <p className={`${FONT} text-sm text-[#5B6B7A]`}>{t.desc}</p>
+                <p className={`${FONT} text-lg font-semibold text-[#1A2B3C]`}>{tab.label}</p>
+                <p className={`${FONT} text-sm text-[#5B6B7A]`}>{tab.desc}</p>
               </div>
             </button>
           ))}
@@ -101,9 +123,7 @@ function Shell({ subtitle, onBack, children }) {
   return (
     <div className="min-h-screen bg-[#F5F7F9]">
       <div className="bg-[#145A7A] px-5 py-4 flex items-center gap-3">
-        <button onClick={onBack} className="text-white/80 hover:text-white">
-          <ArrowLeft size={20} />
-        </button>
+        <button onClick={onBack} className="text-white/80 hover:text-white"><ArrowLeft size={20} /></button>
         <div className="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center">
           <Sprout className="text-white" size={17} />
         </div>
@@ -121,11 +141,10 @@ function Card({ children, className = "" }) {
   return <div className={`bg-white border border-[#E2E6EA] rounded-2xl p-5 mb-4 ${className}`}>{children}</div>;
 }
 
-function EnterpriseApp({ onBack }) {
+function EnterpriseApp({ onBack, lang, setLang }) {
   const [selected, setSelected] = useState(enterprises[0]);
   const [scenario, setScenario] = useState("none");
   const [listening, setListening] = useState(false);
-  const [lang, setLang] = useState("en");
   const t = translations[lang];
 
   const [txMap, setTxMap] = useState(() => {
@@ -171,9 +190,12 @@ function EnterpriseApp({ onBack }) {
 
   const addTransaction = () => {
     if (!amount || !category) return;
-    const newTx = { id: Date.now(), type, amount: Number(amount), category };
+    const newTx = { id: Date.now(), type, amount: Number(amount), category: { en: category, hi: category } };
     setTxMap((prev) => ({ ...prev, [selected.id]: [newTx, ...prev[selected.id]] }));
-    speak(`${type === "income" ? "Added income" : "Added expense"} of ${amount} rupees for ${category}`);
+    const msg = lang === "hi"
+      ? `${type === "income" ? "आमदनी" : "खर्च"} जोड़ा गया, ${amount} रुपये, ${category}`
+      : `${type === "income" ? "Added income" : "Added expense"} of ${amount} rupees for ${category}`;
+    speak(msg, lang);
     setAmount("");
     setCategory("");
   };
@@ -182,39 +204,26 @@ function EnterpriseApp({ onBack }) {
 
   return (
     <Shell subtitle={t.appTitle} onBack={onBack}>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 gap-2">
         <div className="flex gap-2 flex-wrap">
           {enterprises.map((e) => (
-            <button
-              key={e.id}
-              onClick={() => setSelected(e)}
+            <button key={e.id} onClick={() => setSelected(e)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium ${FONT} ${
                 selected.id === e.id ? "bg-[#145A7A] text-white" : "bg-white text-[#5B6B7A] border border-[#E2E6EA]"
-              }`}
-            >
-              {e.name}
+              }`}>
+              {L(e.name, lang)}
             </button>
           ))}
         </div>
-        <button
-          onClick={() => setLang(lang === "en" ? "hi" : "en")}
-          className={`flex items-center gap-1.5 text-sm ${FONT} border border-[#E2E6EA] rounded-lg px-2.5 py-1.5 text-[#5B6B7A] bg-white`}
-        >
-          <Globe size={14} /> {lang === "en" ? "EN" : "हिं"}
-        </button>
+        <LangToggle lang={lang} setLang={setLang} />
       </div>
 
-      {/* Voice is the primary action — biggest element on the screen */}
-      <button
-        onClick={startVoiceInput}
+      <button onClick={startVoiceInput}
         className="w-full rounded-2xl mb-4 py-6 flex flex-col items-center gap-2 text-white shadow-sm"
-        style={{ backgroundColor: listening ? "#B3261E" : "#145A7A" }}
-      >
+        style={{ backgroundColor: listening ? "#B3261E" : "#145A7A" }}>
         <Mic size={30} className={listening ? "animate-pulse" : ""} />
-        <span className={`${FONT} font-semibold text-base`}>
-          {listening ? "Listening…" : "Tap and speak your entry"}
-        </span>
-        <span className={`${FONT} text-xs text-white/70`}>e.g. "500 rupees feed purchase"</span>
+        <span className={`${FONT} font-semibold text-base`}>{listening ? t.listening : t.tapSpeak}</span>
+        <span className={`${FONT} text-xs text-white/70`}>{t.tapSpeakSub}</span>
       </button>
 
       <Card>
@@ -225,10 +234,10 @@ function EnterpriseApp({ onBack }) {
               {liveHealthScore}<span className="text-base text-[#8A97A3]">/100</span>
             </p>
             <p className={`text-sm font-medium ${FONT} mt-0.5`} style={{ color: scoreColor }}>
-              {riskPlainLabel(selected.risk)}
+              {riskPlainLabel(selected.risk, t)}
             </p>
           </div>
-          <Badge risk={selected.risk} />
+          <Badge risk={selected.risk} t={t} />
         </div>
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
@@ -244,44 +253,33 @@ function EnterpriseApp({ onBack }) {
       </Card>
 
       <Card>
-        <p className={`${FONT} font-semibold text-[#1A2B3C] mb-3`}>Or type an entry</p>
+        <p className={`${FONT} font-semibold text-[#1A2B3C] mb-3`}>{t.orType}</p>
         <div className="flex gap-2 mb-3">
-          <button
-            onClick={() => setType("income")}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-medium ${FONT} ${type === "income" ? "bg-[#2E7D5B] text-white" : "bg-[#F5F7F9] text-[#5B6B7A]"}`}
-          >
-            Money in
+          <button onClick={() => setType("income")}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium ${FONT} ${type === "income" ? "bg-[#2E7D5B] text-white" : "bg-[#F5F7F9] text-[#5B6B7A]"}`}>
+            {t.moneyIn}
           </button>
-          <button
-            onClick={() => setType("expense")}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-medium ${FONT} ${type === "expense" ? "bg-[#B3261E] text-white" : "bg-[#F5F7F9] text-[#5B6B7A]"}`}
-          >
-            Money out
+          <button onClick={() => setType("expense")}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium ${FONT} ${type === "expense" ? "bg-[#B3261E] text-white" : "bg-[#F5F7F9] text-[#5B6B7A]"}`}>
+            {t.moneyOut}
           </button>
         </div>
         <div className="flex gap-2 mb-3">
-          <input
-            type="number" placeholder="₹ Amount" value={amount}
+          <input type="number" placeholder={t.amountPlaceholder} value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className={`w-28 border border-[#E2E6EA] rounded-xl px-3 py-2.5 text-sm ${FONT}`}
-          />
-          <input
-            type="text" placeholder="e.g. Milk sale" value={category}
+            className={`w-28 border border-[#E2E6EA] rounded-xl px-3 py-2.5 text-sm ${FONT}`} />
+          <input type="text" placeholder={t.categoryPlaceholder} value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className={`flex-1 border border-[#E2E6EA] rounded-xl px-3 py-2.5 text-sm ${FONT}`}
-          />
+            className={`flex-1 border border-[#E2E6EA] rounded-xl px-3 py-2.5 text-sm ${FONT}`} />
         </div>
-        <button
-          onClick={addTransaction}
-          className={`w-full py-2.5 bg-[#1A2B3C] text-white rounded-xl text-sm font-semibold ${FONT}`}
-        >
-          Add entry
+        <button onClick={addTransaction} className={`w-full py-2.5 bg-[#1A2B3C] text-white rounded-xl text-sm font-semibold ${FONT}`}>
+          {t.addEntry}
         </button>
 
         <div className="mt-4 pt-4 border-t border-[#EEF1F4] space-y-2.5 max-h-40 overflow-y-auto">
           {transactions.map((tx) => (
             <div key={tx.id} className="flex justify-between text-sm">
-              <span className={`text-[#5B6B7A] ${FONT}`}>{tx.category}</span>
+              <span className={`text-[#5B6B7A] ${FONT}`}>{L(tx.category, lang)}</span>
               <LedgerAmount amount={tx.amount} type={tx.type} />
             </div>
           ))}
@@ -302,7 +300,7 @@ function EnterpriseApp({ onBack }) {
             </div>
           </div>
           <ul className={`text-sm text-[#5B6B7A] space-y-1.5 ${FONT}`}>
-            {selected.readinessTips.map((tip, i) => <li key={i}>• {tip}</li>)}
+            {selected.readinessTips.map((tip, i) => <li key={i}>• {L(tip, lang)}</li>)}
           </ul>
         </div>
       </Card>
@@ -310,13 +308,14 @@ function EnterpriseApp({ onBack }) {
       <Card>
         <div className="flex items-center justify-between mb-2">
           <p className={`${FONT} font-semibold text-[#1A2B3C]`}>{t.riskAlert}</p>
-          <button onClick={() => speak(selected.riskReason)} className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-[#145A7A] bg-[#145A7A]/10 ${FONT}`}>
+          <button onClick={() => speak(L(selected.riskReason, lang), lang)}
+            className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-[#145A7A] bg-[#145A7A]/10 ${FONT}`}>
             <Volume2 size={13}/> {t.playAlert}
           </button>
         </div>
-        <p className={`text-sm text-[#5B6B7A] mb-4 ${FONT}`}>{selected.riskReason}</p>
+        <p className={`text-sm text-[#5B6B7A] mb-4 ${FONT}`}>{L(selected.riskReason, lang)}</p>
         <p className={`font-medium text-sm text-[#1A2B3C] mb-3 ${FONT}`}>{t.whyFlagged}</p>
-        {selected.factors.map((f, i) => <FactorBar key={i} {...f} />)}
+        {selected.factors.map((f, i) => <FactorBar key={i} {...f} lang={lang} />)}
       </Card>
 
       <Card className="mb-0">
@@ -327,11 +326,11 @@ function EnterpriseApp({ onBack }) {
               className={`px-3 py-1.5 rounded-xl text-sm font-medium ${FONT} ${
                 scenario === key ? "bg-[#145A7A] text-white" : "bg-[#F5F7F9] text-[#5B6B7A]"
               }`}>
-              {val.label}
+              {L(val.label, lang)}
             </button>
           ))}
         </div>
-        {scenarioData.note && <p className={`text-sm text-[#5B6B7A] ${FONT}`}>{scenarioData.note}</p>}
+        {L(scenarioData.note, lang) && <p className={`text-sm text-[#5B6B7A] ${FONT}`}>{L(scenarioData.note, lang)}</p>}
       </Card>
     </Shell>
   );
@@ -339,6 +338,7 @@ function EnterpriseApp({ onBack }) {
 
 function FieldOfficerDashboard({ onBack }) {
   const [expanded, setExpanded] = useState(null);
+  const t = translations.en;
   return (
     <Shell subtitle="Field officer dashboard" onBack={onBack}>
       <div className="space-y-2.5">
@@ -350,20 +350,20 @@ function FieldOfficerDashboard({ onBack }) {
                 <div className="flex items-center gap-3">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: riskColor(e.risk) }} />
                   <div>
-                    <p className={`${FONT} font-semibold text-[#1A2B3C]`}>{e.name}</p>
-                    <p className={`text-xs text-[#8A97A3] ${FONT}`}>{e.sector} · {e.district}</p>
+                    <p className={`${FONT} font-semibold text-[#1A2B3C]`}>{L(e.name, "en")}</p>
+                    <p className={`text-xs text-[#8A97A3] ${FONT}`}>{L(e.sector, "en")} · {L(e.district, "en")}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <Badge risk={e.risk} />
+                  <Badge risk={e.risk} t={t} />
                   <p className={`text-xs text-[#8A97A3] mt-1 ${FONT}`}>Health: {e.healthScore}/100</p>
                 </div>
               </div>
-              <p className={`text-sm text-[#5B6B7A] mt-2 pl-5 ${FONT}`}>{e.riskReason}</p>
+              <p className={`text-sm text-[#5B6B7A] mt-2 pl-5 ${FONT}`}>{L(e.riskReason, "en")}</p>
               {isOpen && (
                 <div className="mt-3 pt-3 border-t border-[#EEF1F4] pl-5">
                   <p className={`text-xs font-medium text-[#8A97A3] mb-2 uppercase tracking-wide ${FONT}`}>Contributing factors</p>
-                  {e.factors.map((f, i) => <FactorBar key={i} {...f} />)}
+                  {e.factors.map((f, i) => <FactorBar key={i} {...f} lang="en" />)}
                 </div>
               )}
             </div>
@@ -375,16 +375,98 @@ function FieldOfficerDashboard({ onBack }) {
 }
 
 function NabardView({ onBack }) {
+  const [selected, setSelected] = useState(null);
+  const cellMap = {};
+  heatmapData.forEach((d) => { cellMap[`${d.district}|${d.sector}`] = d; });
+
+  const districtTotals = districts.map((dist) => {
+    const rows = heatmapData.filter((h) => h.district === dist);
+    const enterprisesCount = rows.reduce((s, r) => s + r.enterprises, 0);
+    const avgRisk = Math.round(rows.reduce((s, r) => s + r.risk * r.enterprises, 0) / enterprisesCount);
+    return { district: dist, enterprises: enterprisesCount, avgRisk };
+  });
+
+  const selectedCell = selected ? cellMap[`${selected.district}|${selected.sector}`] : null;
+
   return (
     <Shell subtitle="NABARD aggregate view" onBack={onBack}>
+      <Card>
+        <p className={`${FONT} font-semibold text-[#1A2B3C] mb-1`}>Risk heatmap</p>
+        <p className={`text-xs text-[#8A97A3] mb-4 ${FONT}`}>District × sector. Tap a cell for details.</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs" style={{ borderSpacing: 4, borderCollapse: "separate" }}>
+            <thead>
+              <tr>
+                <th className="w-20"></th>
+                {sectors.map((s) => (
+                  <th key={s} className={`${FONT} font-medium text-[#5B6B7A] text-center pb-1`} style={{ fontSize: "10px" }}>{s}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {districts.map((dist) => (
+                <tr key={dist}>
+                  <td className={`${FONT} font-semibold text-[#1A2B3C] pr-2 whitespace-nowrap text-xs`}>{dist}</td>
+                  {sectors.map((sec) => {
+                    const cell = cellMap[`${dist}|${sec}`];
+                    const isSelected = selected && selected.district === dist && selected.sector === sec;
+                    return (
+                      <td key={sec} className="p-0.5">
+                        <button
+                          onClick={() => setSelected({ district: dist, sector: sec })}
+                          className={`${FONT} w-full aspect-square rounded-lg flex items-center justify-center text-white font-semibold transition-transform`}
+                          style={{
+                            backgroundColor: riskHeatColor(cell.risk),
+                            outline: isSelected ? "2px solid #1A2B3C" : "none",
+                            outlineOffset: 2,
+                            transform: isSelected ? "scale(1.08)" : "scale(1)",
+                            minWidth: 40,
+                            minHeight: 40,
+                          }}
+                        >
+                          {cell.risk}
+                        </button>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex items-center gap-3 mt-4">
+          <span className={`${FONT} text-xs text-[#8A97A3]`}>Low risk</span>
+          <div className="flex-1 h-2 rounded-full" style={{ background: "linear-gradient(to right, #2E7D5B, #C77800, #B3261E)" }} />
+          <span className={`${FONT} text-xs text-[#8A97A3]`}>High risk</span>
+        </div>
+      </Card>
+
+      {selectedCell ? (
+        <Card>
+          <div className="flex justify-between items-start mb-3">
+            <div>
+              <p className={`${FONT} font-semibold text-[#1A2B3C] text-lg`}>{selectedCell.sector} · {selectedCell.district}</p>
+              <p className={`text-xs text-[#8A97A3] ${FONT}`}>{selectedCell.enterprises} enterprises tracked</p>
+            </div>
+            <span className={`${FONT} text-sm font-bold px-3 py-1.5 rounded-full text-white`} style={{ backgroundColor: riskHeatColor(selectedCell.risk) }}>
+              {selectedCell.risk}/100
+            </span>
+          </div>
+          <p className={`text-sm text-[#5B6B7A] ${FONT}`}>{selectedCell.note}</p>
+        </Card>
+      ) : (
+        <Card>
+          <p className={`text-sm text-[#8A97A3] ${FONT}`}>Tap any cell above to see the district-sector breakdown.</p>
+        </Card>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
-        {districtSummary.map((d) => (
+        {districtTotals.map((d) => (
           <div key={d.district} className="bg-white rounded-2xl border border-[#E2E6EA] p-4">
-            <p className={`${FONT} font-semibold text-[#1A2B3C] mb-3`}>{d.district}</p>
-            <div className="space-y-1.5 text-sm">
-              <p className={`text-[#5B6B7A] ${FONT}`}>Enterprises tracked <span className={`float-right text-[#1A2B3C] font-semibold ${FONT}`}>{d.enterprises}</span></p>
-              <p className={`text-[#5B6B7A] ${FONT}`}>Avg health score <span className={`float-right text-[#1A2B3C] font-semibold ${FONT}`}>{d.avgHealth}/100</span></p>
-              <p className={`text-[#5B6B7A] ${FONT}`}>High risk <span className="float-right font-semibold" style={{ color: "#B3261E" }}>{d.highRisk}</span></p>
+            <p className={`${FONT} font-semibold text-[#1A2B3C] mb-2`}>{d.district}</p>
+            <div className="space-y-1 text-sm">
+              <p className={`text-[#5B6B7A] ${FONT}`}>Enterprises <span className={`float-right text-[#1A2B3C] font-semibold ${FONT}`}>{d.enterprises}</span></p>
+              <p className={`text-[#5B6B7A] ${FONT}`}>Avg risk <span className="float-right font-semibold" style={{ color: riskHeatColor(d.avgRisk) }}>{d.avgRisk}</span></p>
             </div>
           </div>
         ))}
@@ -395,8 +477,9 @@ function NabardView({ onBack }) {
 
 export default function App() {
   const [view, setView] = useState("landing");
-  if (view === "landing") return <Landing onSelect={setView} />;
-  if (view === "enterprise") return <EnterpriseApp onBack={() => setView("landing")} />;
+  const [lang, setLang] = useState("en");
+  if (view === "landing") return <Landing onSelect={setView} lang={lang} setLang={setLang} />;
+  if (view === "enterprise") return <EnterpriseApp onBack={() => setView("landing")} lang={lang} setLang={setLang} />;
   if (view === "officer") return <FieldOfficerDashboard onBack={() => setView("landing")} />;
   if (view === "nabard") return <NabardView onBack={() => setView("landing")} />;
 }
