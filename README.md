@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./src/assets/finsaarthi-logo-full.png" alt="FinSaarthi Logo" width="320"/>
+<img src="./screenshots/finsaarthi-logo-full.png" alt="FinSaarthi Logo" width="260"/>
 
 # FinSaarthi
 
@@ -16,66 +16,82 @@ Developed for **NABARD Hackathon 2026**
 
 ## Overview
 
-FinSaarthi is an AI-powered financial intelligence platform that helps rural micro enterprises predict financial stress before it becomes a default.
+FinSaarthi is an AI-powered financial intelligence platform designed to help rural micro enterprises predict financial stress before it turns into default.
 
-The platform transforms raw financial activity into actionable insights through predictive cash flow forecasting, explainable risk analysis, multilingual voice interaction, and decision-support dashboards. It empowers entrepreneurs, field officers, and institutions such as NABARD to make proactive financial decisions rather than reacting after problems arise.
+Instead of relying solely on historical financial records, FinSaarthi analyzes transaction behaviour, repayment history, cash flow trends and contextual business signals to provide proactive financial insights. The platform enables entrepreneurs, field officers and financial institutions such as NABARD to identify risks early and make informed, data-driven decisions.
 
 ---
 
 ## Key Features
 
-- AI-powered cash flow forecasting
-- Early financial risk detection
-- Explainable AI insights
+- AI-powered Cash Flow Forecasting
+- Early Financial Risk Detection
+- Explainable AI Insights
 - Credit Readiness Score
-- What-If financial simulator
-- Voice-first multilingual interface
-- Enterprise dashboard
-- Field officer dashboard
-- NABARD analytics dashboard
-- District-wise and sector-wise risk heatmaps
+- What-If Financial Simulator
+- Voice-first Multilingual Interface
+- Enterprise Dashboard
+- Field Officer Dashboard
+- NABARD Analytics Dashboard
+- District-wise & Sector-wise Risk Heatmaps
 
 ---
 
 # Application Preview
 
-## Landing Page
+<table align="center">
+<tr>
 
-<p align="center">
-<img src="./screenshots/Landing.png" width="900">
-</p>
+<td align="center" width="50%">
 
----
+### Landing Page
 
-## Enterprise Dashboard
+<img src="./screenshots/Landing.png" width="320"/>
 
-<p align="center">
-<img src="./screenshots/Enterprise.png" width="900">
-</p>
+</td>
 
----
+<td align="center" width="50%">
 
-## Enterprise Financial Insights
+### Enterprise Dashboard
 
-<p align="center">
-<img src="./screenshots/Enterprise_details.png" width="900">
-</p>
+<img src="./screenshots/Enterprise.png" width="320"/>
 
----
+</td>
 
-## Field Officer Dashboard
+</tr>
 
-<p align="center">
-<img src="./screenshots/Field_officer.png" width="900">
-</p>
+<tr>
 
----
+<td align="center">
 
-## NABARD Aggregate Dashboard
+### Financial Insights
 
-<p align="center">
-<img src="./screenshots/Nabard_aggregate_view.png" width="900">
-</p>
+<img src="./screenshots/Enterprise_details.png" width="320"/>
+
+</td>
+
+<td align="center">
+
+### Field Officer Dashboard
+
+<img src="./screenshots/Field_officer.png" width="320"/>
+
+</td>
+
+</tr>
+
+<tr>
+
+<td align="center" colspan="2">
+
+### NABARD Aggregate Dashboard
+
+<img src="./screenshots/Nabard_aggregate_view.png" width="380"/>
+
+</td>
+
+</tr>
+</table>
 
 ---
 
@@ -89,7 +105,7 @@ The platform transforms raw financial activity into actionable insights through 
 | Charts | Recharts |
 | Icons | Lucide React |
 | Voice Interface | Web Speech API |
-| Dataset | Mock Financial Dataset |
+| Data | Mock Financial Dataset |
 
 ---
 
@@ -99,27 +115,27 @@ The platform transforms raw financial activity into actionable insights through 
 Financial Data
         │
         ▼
-Data Processing & Validation
+Data Collection & Processing
         │
         ▼
 AI Risk Assessment Engine
         │
-        ├───────────────┐
-        │               │
-        ▼               ▼
-Cash Flow Forecast   Credit Readiness
+        ├────────────────────┐
+        │                    │
+        ▼                    ▼
+Cash Flow Forecast     Credit Readiness
         │
         ▼
 Explainable Insights
         │
         ▼
-Decision Support
+Decision Support Layer
         │
- ┌──────┼─────────┐
- │      │         │
- ▼      ▼         ▼
-Enterprise   Field Officer   NABARD
-Dashboard     Dashboard     Dashboard
+ ┌──────┼─────────────┐
+ │      │             │
+ ▼      ▼             ▼
+Enterprise     Field Officer     NABARD
+ Dashboard       Dashboard      Dashboard
 ```
 
 ---
@@ -131,6 +147,13 @@ finsaarthi
 │
 ├── public
 ├── screenshots
+│   ├── Landing.png
+│   ├── Enterprise.png
+│   ├── Enterprise_details.png
+│   ├── Field_officer.png
+│   ├── Nabard_aggregate_view.png
+│   └── finsaarthi-logo-full.png
+│
 ├── src
 │   ├── assets
 │   ├── App.jsx
@@ -138,10 +161,35 @@ finsaarthi
 │   └── mockData.js
 │
 ├── package.json
-├── vite.config.js
 ├── tailwind.config.js
+├── vite.config.js
 └── README.md
 ```
+
+---
+
+## Target Users
+
+### Rural Micro Entrepreneurs
+
+- Monitor business health
+- Forecast future cash flow
+- Improve credit readiness
+- Receive personalized financial recommendations
+
+### Field Officers
+
+- Identify high-risk enterprises
+- Understand contributing risk factors
+- Prioritize field interventions
+- Improve monitoring efficiency
+
+### NABARD & Financial Institutions
+
+- Monitor district-level financial health
+- Analyze sector-wise trends
+- Track portfolio risk
+- Enable data-driven policy decisions
 
 ---
 
@@ -153,7 +201,7 @@ Clone the repository
 git clone https://github.com/Mahek2710/finsaarthi.git
 ```
 
-Navigate to the project
+Navigate to the project directory
 
 ```bash
 cd finsaarthi
@@ -171,51 +219,47 @@ Start the development server
 npm run dev
 ```
 
+The application will be available at:
+
+```text
+http://localhost:5173
+```
+
 ---
 
-## Target Users
+## Future Scope
 
-### Rural Micro Entrepreneurs
-
-- Track business health
-- Forecast future cash flow
-- Improve loan readiness
-- Receive financial recommendations
-
-### Field Officers
-
-- Identify high-risk enterprises
-- Understand contributing risk factors
-- Prioritize field interventions
-
-### NABARD
-
-- Monitor district-level financial health
-- Analyze sector-wise trends
-- Enable data-driven policy decisions
+- Integration with real banking and UPI transaction data
+- AI-powered credit scoring using alternative financial signals
+- District-level predictive risk analytics
+- Offline-first mobile application
+- Regional language expansion
+- Integration with NABARD, RRBs and Cooperative Banks
+- Personalized financial advisory recommendations
 
 ---
 
 ## Vision
 
-FinSaarthi aims to become the financial intelligence layer for rural lending by enabling:
+FinSaarthi aims to become the financial intelligence layer powering rural lending by enabling proactive financial decisions instead of reactive interventions.
 
-- Earlier intervention
-- Better lending decisions
-- Reduced defaults
-- Improved financial inclusion
-- Sustainable rural economic growth
+By combining AI, explainable insights and multilingual accessibility, the platform seeks to reduce defaults, improve responsible credit access and strengthen the rural financial ecosystem.
 
 ---
 
 ## Team
 
-**Mahek Hingorani**
+- **Mahek Hingorani**
+- **Supriya Nayak**
+- **Akritee Singh**
+- **Shambhavi Patil**
 
-**Supriya Nayak**
+---
 
-**Akritee Singh**
+<div align="center">
 
-**Shambhavi Patil**
+**Built for NABARD Hackathon 2026**
 
-Developed for **NABARD Hackathon 2026**
+**FinSaarthi — From Prediction to Prevention**
+
+</div>
